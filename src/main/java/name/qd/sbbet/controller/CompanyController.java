@@ -2,6 +2,7 @@ package name.qd.sbbet.controller;
 
 import java.util.List;
 
+import name.qd.sbbet.request.UpdateCompanyRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.crossstore.ChangeSetPersister.NotFoundException;
 import org.springframework.http.ResponseEntity;
@@ -32,23 +33,21 @@ public class CompanyController {
 	}
 	
 	@GetMapping("")
-	public ResponseEntity<?> getCompanyById(@RequestParam(required = false) Integer id, @RequestParam(required = false) String name) throws NotFoundException {
-		if(id == null && name == null) {
-			Response res = new Response("");
+	public ResponseEntity<?> getCompanyById(@RequestParam Integer id) throws NotFoundException {
+		if(id == null) {
+			Response res = new Response("id cannot be null");
 			return ResponseEntity.badRequest().body(res);
 		}
 		
-		if(id != null) {
-			Company company = companyService.findById(id);
-			return ResponseEntity.ok(company);
-		}
-		
-		Company company = companyService.findByName(name);
+		Company company = companyService.findById(id);
 		return ResponseEntity.ok(company);
 	}
 	
 	@PostMapping("")
 	public ResponseEntity<?> insertCompany(@RequestBody InsertCompanyRequest insertCompanyRequest) {
+		if(insertCompanyRequest.getName() == null || insertCompanyRequest.getAddress() == null) {
+			return ResponseEntity.badRequest().build();
+		}
 		Company company = companyService.insert(insertCompanyRequest.toCompany());
 		if(company != null) {
 			return ResponseEntity.ok(company);
@@ -57,8 +56,8 @@ public class CompanyController {
 	}
 	
 	@PutMapping("")
-	public ResponseEntity<?> updateCompany(@RequestBody Company company) throws NotFoundException {
-		Company updatedCompany = companyService.updateById(company);
+	public ResponseEntity<?> updateCompany(@RequestBody UpdateCompanyRequest updateCompanyRequest) throws NotFoundException {
+		Company updatedCompany = companyService.updateById(updateCompanyRequest.toCompany());
 		if(updatedCompany != null) {
 			return ResponseEntity.ok(updatedCompany);
 		}

@@ -29,15 +29,7 @@ public class CompanyService {
 		companyDao.findAll().forEach(b -> lst.add(b));
 		return lst;
 	}
-	
-	public Company findByName(String name) throws NotFoundException {
-		Optional<Company> optional = companyDao.findByName(name);
-		if(optional.isPresent()) {
-			return optional.get();
-		}
-		throw new NotFoundException();
-	}
-	
+
 	public Company findById(int id) throws NotFoundException {
 		Optional<Company> optional = companyDao.findById(id);
 		if(optional.isPresent()) {

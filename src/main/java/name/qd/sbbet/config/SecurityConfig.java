@@ -18,11 +18,18 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 	@Override
 	protected void configure(HttpSecurity http) throws Exception {
 		http
+		.headers().frameOptions().disable()
+		.and()
 		.authorizeRequests()
-		.antMatchers(HttpMethod.GET, "/**").hasAuthority("view")
-		.antMatchers(HttpMethod.POST, "/**").hasAuthority("create")
-		.antMatchers(HttpMethod.PUT, "/**").hasAuthority("modify")
-		.antMatchers(HttpMethod.DELETE, "/**").hasAuthority("delete")
+		.antMatchers(HttpMethod.GET, "/company/**").hasAuthority("view")
+		.antMatchers(HttpMethod.GET, "/client/**").hasAuthority("view")
+		.antMatchers(HttpMethod.POST, "/company/**").hasAuthority("create")
+		.antMatchers(HttpMethod.POST, "/client/**").hasAuthority("create")
+		.antMatchers(HttpMethod.PUT, "/company/**").hasAuthority("modify")
+		.antMatchers(HttpMethod.PUT, "/client/**").hasAuthority("modify")
+		.antMatchers(HttpMethod.DELETE, "/company/**").hasAuthority("delete")
+		.antMatchers(HttpMethod.DELETE, "/client/**").hasAuthority("delete")
+		.anyRequest().permitAll()
 		.and()
 		.csrf().disable()
 		.formLogin();
