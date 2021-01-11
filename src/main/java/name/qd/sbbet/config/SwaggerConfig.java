@@ -18,6 +18,7 @@ public class SwaggerConfig {
     @Bean
     public Docket api() {
         return new Docket(DocumentationType.SWAGGER_2)
+        		.produces(Collections.singleton("application/json"))
                 .useDefaultResponseMessages(false)
                 .select()
                 .apis(RequestHandlerSelectors.withClassAnnotation(RestController.class))

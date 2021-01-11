@@ -1,7 +1,5 @@
 package name.qd.sbbet.dto;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-
 import java.sql.Timestamp;
 
 import javax.persistence.*;

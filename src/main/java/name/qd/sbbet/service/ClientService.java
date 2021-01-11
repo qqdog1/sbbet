@@ -1,14 +1,17 @@
 package name.qd.sbbet.service;
 
+import java.sql.Timestamp;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.StreamSupport;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.crossstore.ChangeSetPersister.NotFoundException;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import name.qd.sbbet.dto.Client;
@@ -31,14 +34,6 @@ public class ClientService {
 		return lst;
 	}
 	
-	public Client findByName(String name) throws NotFoundException {
-		Optional<Client> optional = clientRepository.findByName(name);
-		if(optional.isPresent()) {
-			return optional.get();
-		}
-		throw new NotFoundException();
-	}
-	
 	public Client findById(int id) throws NotFoundException {
 		Optional<Client> optional = clientRepository.findById(id);
 		if(optional.isPresent()) {
@@ -47,33 +42,39 @@ public class ClientService {
 		throw new NotFoundException();
 	}
 	
-	public int insert(List<Client> clients) {
+	public List<Client> insert(List<Client> clients) {
+		// check company id
+		// insert time and at
 		Iterable<Client> iterable = clientRepository.saveAll(clients);
-		return (int) StreamSupport.stream(iterable.spliterator(), false).count();
+		List<Client> lst = new ArrayList<Client>();
+	    iterable.forEach(lst::add);
+		return lst;
 	}
 	
-	public boolean insert(Client client) {
+	public Client insert(Client client) {
+		// check company id
+		
+		String username = getLoginUserName();
+		client.setCreatedBy(username);
+		client.setCreatedAt(Timestamp.from(Instant.now()));
+		
 		try {
-			clientRepository.save(client);
+			return clientRepository.save(client);
 		} catch(IllegalArgumentException e) {
 			logger.error("Insert client to db failed.", e);
-			return false;
+			return null;
 		}
-		return true;
 	}
 	
-	public boolean updateById(Client client) {
-		if(!clientRepository.existsById(client.getId())) {
-			logger.error("Update client failed, id not exist, id:{}", client.getId());
-			return false;
-		}
+	public Client updateById(Client client) throws NotFoundException {
+		Client dbClient = findById(client.getId());
+		
 		try {
-			clientRepository.save(client);
+			return clientRepository.save(transToUpdateClient(client, dbClient));
 		} catch(IllegalArgumentException e) {
 			logger.error("Update client to db failed.", e);
-			return false;
+			return null;
 		}
-		return true;
 	}
 	
 	public boolean deleteById(int id) {
@@ -84,5 +85,21 @@ public class ClientService {
 			return false;
 		}
 		return true;
+	}
+	
+	private String getLoginUserName() {
+		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+		return authentication.getName();
+	}
+	
+	private Client transToUpdateClient(Client updateClient, Client dbClient) {
+		dbClient.setName(updateClient.getName());
+		dbClient.setCompanyId(updateClient.getCompanyId());
+		dbClient.setEmail(updateClient.getEmail());
+		dbClient.setPhone(updateClient.getPhone());
+		String username = getLoginUserName();
+		dbClient.setUpdatedBy(username);
+		dbClient.setUpdatedAt(Timestamp.from(Instant.now()));
+		return dbClient;
 	}
 }

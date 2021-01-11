@@ -9,8 +9,14 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiResponse;
+import io.swagger.annotations.ApiResponses;
+
 @RestController
 @RequestMapping("")
+@Api(tags = "login")
 public class LoginController {
 	private AuthenticationManager authenticationManager;
 
@@ -20,7 +26,9 @@ public class LoginController {
 	}
 
 	@PostMapping("/login")
-	public ResponseEntity login(@RequestBody LoginRequest loginRequest) {
+	@ApiOperation(value="Login and get JSESSIONID", notes = "", response = Void.class)
+	@ApiResponses(value = {@ApiResponse(code = 400, message = "Login failed")})
+	public ResponseEntity<Void> login(@RequestBody LoginRequest loginRequest) {
 		Authentication authentication = authenticationManager.authenticate(
 				new UsernamePasswordAuthenticationToken(loginRequest.getUsername(), loginRequest.getPassword()));
 		SecurityContextHolder.getContext().setAuthentication(authentication);

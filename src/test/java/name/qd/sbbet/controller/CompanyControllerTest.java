@@ -1,21 +1,14 @@
 package name.qd.sbbet.controller;
 
-import static org.hamcrest.Matchers.containsString;
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.test.web.servlet.setup.SharedHttpSessionConfigurer.sharedHttpSession;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import name.qd.sbbet.dto.Company;
-import name.qd.sbbet.request.DeleteCompanyRequest;
-import name.qd.sbbet.request.InsertCompanyRequest;
-import name.qd.sbbet.request.UpdateCompanyRequest;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -30,6 +23,13 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+import name.qd.sbbet.dto.Company;
+import name.qd.sbbet.request.DeleteCompanyRequest;
+import name.qd.sbbet.request.InsertCompanyRequest;
+import name.qd.sbbet.request.UpdateCompanyRequest;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.MOCK)
@@ -50,7 +50,6 @@ public class CompanyControllerTest {
 	// 正常update V
 	// update不給id V
 	// update給id不給其他 V
-	// update還給create資訊 V
 	// 正常delete V
 	// delete不存在ID
 	
