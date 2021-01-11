@@ -24,8 +24,12 @@ import name.qd.sbbet.service.CompanyService;
 @RestController
 @RequestMapping("/company")
 public class CompanyController {
-	@Autowired
 	private CompanyService companyService;
+
+	@Autowired
+	public CompanyController(CompanyService companyService) {
+		this.companyService = companyService;
+	}
 
 	@GetMapping("/all")
 	public ResponseEntity<List<Company>> getAll() {

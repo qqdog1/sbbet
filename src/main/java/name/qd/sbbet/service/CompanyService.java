@@ -21,17 +21,21 @@ import name.qd.sbbet.repository.CompanyRepository;
 public class CompanyService {
 	private Logger logger = LoggerFactory.getLogger(CompanyService.class);
 
+	private CompanyRepository companyRepository;
+
 	@Autowired
-	private CompanyRepository companyDao;
+	public CompanyService(CompanyRepository companyRepository) {
+		this.companyRepository = companyRepository;
+	}
 	
 	public List<Company> findAll() {
 		List<Company> lst = new ArrayList<>();
-		companyDao.findAll().forEach(b -> lst.add(b));
+		companyRepository.findAll().forEach(b -> lst.add(b));
 		return lst;
 	}
 
 	public Company findById(int id) throws NotFoundException {
-		Optional<Company> optional = companyDao.findById(id);
+		Optional<Company> optional = companyRepository.findById(id);
 		if(optional.isPresent()) {
 			return optional.get();
 		}
@@ -44,7 +48,7 @@ public class CompanyService {
 		company.setCreatedAt(Timestamp.from(Instant.now()));
 		
 		try {
-			return companyDao.save(company);
+			return companyRepository.save(company);
 		} catch(IllegalArgumentException e) {
 			logger.error("Insert company to db failed.", e);
 			return null;
@@ -55,7 +59,7 @@ public class CompanyService {
 		Company dbCompany = findById(company.getId());
 		
 		try {
-			return companyDao.save(transToUpdateCompany(company, dbCompany));
+			return companyRepository.save(transToUpdateCompany(company, dbCompany));
 		} catch(IllegalArgumentException e) {
 			logger.error("Update company to db failed.", e);
 			return null;
@@ -64,7 +68,7 @@ public class CompanyService {
 	
 	public boolean deleteById(int id) {
 		try {
-			companyDao.deleteById(id);
+			companyRepository.deleteById(id);
 		} catch(IllegalArgumentException e) {
 			logger.error("Delete company by id failed, id:{}", id, e);
 			return false;

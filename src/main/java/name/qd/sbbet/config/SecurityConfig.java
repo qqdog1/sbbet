@@ -12,8 +12,12 @@ import name.qd.sbbet.service.SpringUserService;
 
 @EnableWebSecurity
 public class SecurityConfig extends WebSecurityConfigurerAdapter {
-	@Autowired
 	private SpringUserService springUserService;
+
+	@Autowired
+	public SecurityConfig(SpringUserService springUserService) {
+		this.springUserService = springUserService;
+	}
 
 	@Override
 	protected void configure(HttpSecurity http) throws Exception {

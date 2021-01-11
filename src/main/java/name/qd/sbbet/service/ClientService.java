@@ -18,17 +18,21 @@ import name.qd.sbbet.repository.ClientRepository;
 public class ClientService {
 	private Logger logger = LoggerFactory.getLogger(CompanyService.class);
 
+	private ClientRepository clientRepository;
+
 	@Autowired
-	private ClientRepository clientDao;
+	public ClientService(ClientRepository clientRepository) {
+		this.clientRepository = clientRepository;
+	}
 	
 	public List<Client> findAll() {
 		List<Client> lst = new ArrayList<>();
-		clientDao.findAll().forEach(b -> lst.add(b));
+		clientRepository.findAll().forEach(b -> lst.add(b));
 		return lst;
 	}
 	
 	public Client findByName(String name) throws NotFoundException {
-		Optional<Client> optional = clientDao.findByName(name);
+		Optional<Client> optional = clientRepository.findByName(name);
 		if(optional.isPresent()) {
 			return optional.get();
 		}
@@ -36,7 +40,7 @@ public class ClientService {
 	}
 	
 	public Client findById(int id) throws NotFoundException {
-		Optional<Client> optional = clientDao.findById(id);
+		Optional<Client> optional = clientRepository.findById(id);
 		if(optional.isPresent()) {
 			return optional.get();
 		}
@@ -44,13 +48,13 @@ public class ClientService {
 	}
 	
 	public int insert(List<Client> clients) {
-		Iterable<Client> iterable = clientDao.saveAll(clients);
+		Iterable<Client> iterable = clientRepository.saveAll(clients);
 		return (int) StreamSupport.stream(iterable.spliterator(), false).count();
 	}
 	
 	public boolean insert(Client client) {
 		try {
-			clientDao.save(client);
+			clientRepository.save(client);
 		} catch(IllegalArgumentException e) {
 			logger.error("Insert client to db failed.", e);
 			return false;
@@ -59,12 +63,12 @@ public class ClientService {
 	}
 	
 	public boolean updateById(Client client) {
-		if(!clientDao.existsById(client.getId())) {
+		if(!clientRepository.existsById(client.getId())) {
 			logger.error("Update client failed, id not exist, id:{}", client.getId());
 			return false;
 		}
 		try {
-			clientDao.save(client);
+			clientRepository.save(client);
 		} catch(IllegalArgumentException e) {
 			logger.error("Update client to db failed.", e);
 			return false;
@@ -74,7 +78,7 @@ public class ClientService {
 	
 	public boolean deleteById(int id) {
 		try {
-			clientDao.deleteById(id);
+			clientRepository.deleteById(id);
 		} catch(IllegalArgumentException e) {
 			logger.error("Delete client by id failed, id:{}", id, e);
 			return false;

@@ -12,11 +12,15 @@ import org.springframework.data.crossstore.ChangeSetPersister.NotFoundException;
 
 @Service
 public class AppUserService {
+	private AppUserRepository appUserRepository;
+
 	@Autowired
-	private AppUserRepository appUserDao;
+	public AppUserService(AppUserRepository appUserRepository) {
+		this.appUserRepository = appUserRepository;
+	}
 
 	public AppUser getUserByName(String username) throws NotFoundException {
-		Optional<AppUser> optional = appUserDao.findByUsername(username);
+		Optional<AppUser> optional = appUserRepository.findByUsername(username);
 		if(optional.isPresent()) {
 			return optional.get();
 		}
