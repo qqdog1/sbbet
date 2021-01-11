@@ -1,11 +1,10 @@
 package name.qd.sbbet.dto;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import java.sql.Timestamp;
 
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.Id;
-import javax.persistence.Table;
+import javax.persistence.*;
 
 @Entity
 @Table
@@ -19,7 +18,7 @@ public class Company {
 	private Timestamp createdAt;
 	private String updatedBy;
 	private Timestamp updatedAt;
-	
+
 	public int getId() {
 		return id;
 	}
@@ -44,8 +43,11 @@ public class Company {
 	public void setCreatedBy(String createdBy) {
 		this.createdBy = createdBy;
 	}
-	public Timestamp getCreatedAt() {
-		return createdAt;
+	public String getCreatedAt() {
+		if(createdAt != null) {
+			return createdAt.toString();
+		}
+		return null;
 	}
 	public void setCreatedAt(Timestamp createdAt) {
 		this.createdAt = createdAt;
@@ -56,8 +58,11 @@ public class Company {
 	public void setUpdatedBy(String updatedBy) {
 		this.updatedBy = updatedBy;
 	}
-	public Timestamp getUpdatedAt() {
-		return updatedAt;
+	public String getUpdatedAt() {
+		if(updatedAt != null) {
+			return updatedAt.toString();
+		}
+		return null;
 	}
 	public void setUpdatedAt(Timestamp updatedAt) {
 		this.updatedAt = updatedAt;

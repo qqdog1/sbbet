@@ -2,6 +2,8 @@ package name.qd.sbbet.controller;
 
 import java.util.List;
 
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
 import name.qd.sbbet.request.UpdateCompanyRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.crossstore.ChangeSetPersister.NotFoundException;
@@ -23,6 +25,7 @@ import name.qd.sbbet.service.CompanyService;
 
 @RestController
 @RequestMapping("/company")
+@Api(tags = "company")
 public class CompanyController {
 	private CompanyService companyService;
 
@@ -32,6 +35,7 @@ public class CompanyController {
 	}
 
 	@GetMapping("/all")
+	@ApiOperation(value="Get all company's information!", notes = "", response = Company.class, responseContainer = "List")
 	public ResponseEntity<List<Company>> getAll() {
 		return ResponseEntity.ok(companyService.findAll());
 	}
