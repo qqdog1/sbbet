@@ -5,15 +5,15 @@ import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import name.qd.sbbet.dao.AppUserDao;
 import name.qd.sbbet.dto.AppUser;
+import name.qd.sbbet.repository.AppUserRepository;
 
 import org.springframework.data.crossstore.ChangeSetPersister.NotFoundException;
 
 @Service
 public class AppUserService {
 	@Autowired
-	private AppUserDao appUserDao;
+	private AppUserRepository appUserDao;
 
 	public AppUser getUserByName(String username) throws NotFoundException {
 		Optional<AppUser> optional = appUserDao.findByUsername(username);

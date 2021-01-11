@@ -19,7 +19,10 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 	protected void configure(HttpSecurity http) throws Exception {
 		http
 		.authorizeRequests()
-		.antMatchers(HttpMethod.GET, "/test/**").hasAuthority("view")
+		.antMatchers(HttpMethod.GET, "/**").hasAuthority("view")
+		.antMatchers(HttpMethod.POST, "/**").hasAuthority("create")
+		.antMatchers(HttpMethod.PUT, "/**").hasAuthority("modify")
+		.antMatchers(HttpMethod.DELETE, "/**").hasAuthority("delete")
 		.and()
 		.csrf().disable()
 		.formLogin();
