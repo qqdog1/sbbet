@@ -43,10 +43,10 @@ public class ClientService {
 	}
 	
 	public List<Client> insert(List<Client> clients) {
-		// check company id
+		// check company id exist
 		// insert time and at
 		Iterable<Client> iterable = clientRepository.saveAll(clients);
-		List<Client> lst = new ArrayList<Client>();
+		List<Client> lst = new ArrayList<>();
 	    iterable.forEach(lst::add);
 		return lst;
 	}
