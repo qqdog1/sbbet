@@ -46,8 +46,6 @@ public class ClientControllerTest {
     private ObjectMapper objectMapper;
     private SimpleDateFormat sdf;
 
-    // mock一個company id
-    // controller 補檢查後 這邊要補錯誤訊息比對
     // 正常view V
     // view 不給條件 V
     // 正常insert V
@@ -85,7 +83,7 @@ public class ClientControllerTest {
     @Test
     @WithMockUser(username = "dummyUser", authorities = {"create", "view", "modify", "delete"})
     public void happyPathTest() throws Exception {
-        Client client = insertTest();
+        Client client = insertTest("happyPathTest");
         findTest(client);
 
         client.setEmail("newEmail@eee.com");
@@ -94,6 +92,7 @@ public class ClientControllerTest {
 
         updateTest(client);
         deleteTest(client.getId());
+        deleteCompany(client.getCompanyId());
     }
 
     @Test
@@ -149,7 +148,7 @@ public class ClientControllerTest {
     }
 
     @Test
-    @WithMockUser(username = "dummyUser", authorities = {"create"})
+    @WithMockUser(username = "dummyUser", authorities = {"create", "delete"})
     public void insertMulti() throws Exception {
         Company company = insertACompany();
 
@@ -189,11 +188,15 @@ public class ClientControllerTest {
             Assert.assertEquals(lst.get(i).getPhone(), lstInsertedClient.get(i).getPhone());
             Assert.assertEquals("dummyUser", lstInsertedClient.get(i).getCreatedBy());
             Assert.assertNotNull(lstInsertedClient.get(i).getCreatedAt());
+
+            deleteTest(lstInsertedClient.get(i).getId());
         }
+
+        deleteCompany(company.getId());
     }
 
     @Test
-    @WithMockUser(username = "dummyUser", authorities = {"create"})
+    @WithMockUser(username = "dummyUser", authorities = {"create", "delete"})
     public void insertMultiWithDiffInfo() throws Exception {
         Company company = insertACompany();
         // insert 多筆 全部有問題
@@ -259,12 +262,16 @@ public class ClientControllerTest {
         Assert.assertEquals(lst.get(1).getPhone(), i6.getPhone());
         Assert.assertNotNull(lst.get(1).getCreatedAt());
         Assert.assertNotNull(lst.get(1).getCreatedBy());
+
+        deleteTest(lst.get(0).getId());
+        deleteTest(lst.get(1).getId());
+        deleteCompany(company.getId());
     }
 
     @Test
-    @WithMockUser(username = "dummyUser", authorities = {"create", "modify"})
+    @WithMockUser(username = "dummyUser", authorities = {"create", "modify", "delete"})
     public void updateWithDiffInfo() throws Exception {
-        Client insertedClient = insertTest();
+        Client insertedClient = insertTest("updateWD");
         // update without id
         UpdateClientRequest updateClient1 = new UpdateClientRequest();
         updateClient1.setName(insertedClient.getName());
@@ -331,6 +338,9 @@ public class ClientControllerTest {
         mockMvc.perform(put("/client").contentType(MediaType.APPLICATION_JSON).content(objectMapper.writeValueAsString(updateClient5)))
                 .andDo(print())
                 .andExpect(status().isBadRequest());
+
+        deleteTest(insertedClient.getId());
+        deleteCompany(insertedClient.getCompanyId());
     }
 
     @Test
@@ -357,8 +367,8 @@ public class ClientControllerTest {
         return parseJsonToCompany(mvcResult.getResponse().getContentAsString());
     }
 
-    private Client insertTest() throws Exception {
-        InsertClientRequest insertClientRequest = createInsertClientRequest();
+    private Client insertTest(String name) throws Exception {
+        InsertClientRequest insertClientRequest = createInsertClientRequest(name);
 
         // insert
         MvcResult mvcResult = mockMvc.perform(post("/client").contentType(MediaType.APPLICATION_JSON).content(objectMapper.writeValueAsString(insertClientRequest)))
@@ -424,6 +434,15 @@ public class ClientControllerTest {
                 .andExpect(status().isOk());
     }
 
+    private void deleteCompany(int id) throws Exception {
+        DeleteCompanyRequest deleteCompanyRequest = new DeleteCompanyRequest();
+        deleteCompanyRequest.setId(id);
+
+        mockMvc.perform(delete("/company").contentType(MediaType.APPLICATION_JSON).content(objectMapper.writeValueAsString(deleteCompanyRequest)))
+                .andDo(print())
+                .andExpect(status().isOk());
+    }
+
     private List<Client> parseJsonToClientList(String jsonString) throws JsonProcessingException, ParseException {
         JsonNode nodeArray = objectMapper.readTree(jsonString);
         List<Client> lst = new ArrayList<>();
@@ -484,13 +503,13 @@ public class ClientControllerTest {
         return company;
     }
 
-    private InsertClientRequest createInsertClientRequest() throws Exception {
+    private InsertClientRequest createInsertClientRequest(String name) throws Exception {
         Company company = insertACompany();
 
         InsertClientRequest insertClientRequest = new InsertClientRequest();
         insertClientRequest.setCompanyId(company.getId());
         insertClientRequest.setEmail("eamil@abc.com");
-        insertClientRequest.setName("TestClient");
+        insertClientRequest.setName(name);
         insertClientRequest.setPhone("123456789");
         return insertClientRequest;
     }
