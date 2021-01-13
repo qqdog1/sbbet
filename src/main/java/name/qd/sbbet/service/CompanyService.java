@@ -45,7 +45,7 @@ public class CompanyService {
 	public Company insert(Company company) {
 		String username = getLoginUserName();
 		company.setCreatedBy(username);
-		company.setCreatedAt(Timestamp.from(Instant.now()));
+		company.setCreatedAt(new Timestamp(System.currentTimeMillis()));
 		
 		try {
 			return companyRepository.save(company);
@@ -86,7 +86,7 @@ public class CompanyService {
 		dbCompany.setAddress(updateCompany.getAddress());
 		String username = getLoginUserName();
 		dbCompany.setUpdatedBy(username);
-		dbCompany.setUpdatedAt(Timestamp.from(Instant.now()));
+		dbCompany.setUpdatedAt(new Timestamp(System.currentTimeMillis()));
 		return dbCompany;
 	}
 }

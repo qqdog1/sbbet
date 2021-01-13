@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import name.qd.sbbet.dto.Client;
+import name.qd.sbbet.dto.Company;
 import name.qd.sbbet.request.*;
 import org.junit.Assert;
 import org.junit.Before;
@@ -150,19 +151,21 @@ public class ClientControllerTest {
     @Test
     @WithMockUser(username = "dummyUser", authorities = {"create"})
     public void insertMulti() throws Exception {
+        Company company = insertACompany();
+
         InsertClientRequest i1 = new InsertClientRequest();
         i1.setName("i1");
-        i1.setCompanyId(66);
+        i1.setCompanyId(company.getId());
         i1.setEmail("i1@email.com");
         i1.setPhone("123456788");
         InsertClientRequest i2 = new InsertClientRequest();
         i2.setName("i2");
-        i2.setCompanyId(66);
+        i2.setCompanyId(company.getId());
         i2.setEmail("i2@email.com");
         i2.setPhone("223456788");
         InsertClientRequest i3 = new InsertClientRequest();
         i3.setName("i3");
-        i3.setCompanyId(66);
+        i3.setCompanyId(company.getId());
         i3.setEmail("i3@email.com");
         i3.setPhone("333456788");
 
@@ -192,7 +195,70 @@ public class ClientControllerTest {
     @Test
     @WithMockUser(username = "dummyUser", authorities = {"create"})
     public void insertMultiWithDiffInfo() throws Exception {
+        Company company = insertACompany();
+        // insert 多筆 全部有問題
+        InsertClientRequest i1 = new InsertClientRequest();
+        i1.setName("i1");
+        i1.setEmail("i1@email.com");
+        i1.setPhone("123456788");
+        InsertClientRequest i2 = new InsertClientRequest();
+        i2.setName("i2");
+        i2.setCompanyId(company.getId());
+        i2.setPhone("223456788");
+        InsertClientRequest i3 = new InsertClientRequest();
+        i3.setName("i3");
+        i3.setCompanyId(company.getId());
+        i3.setEmail("i3@email.com");
+        List<InsertClientRequest> lstAllFail = new ArrayList<>();
+        lstAllFail.add(i1);
+        lstAllFail.add(i2);
+        lstAllFail.add(i3);
 
+        mockMvc.perform(post("/client/all").contentType(MediaType.APPLICATION_JSON).content(objectMapper.writeValueAsString(lstAllFail)))
+                .andDo(print())
+                .andExpect(status().isBadRequest());
+
+        // insert 多筆 部分有問題
+        InsertClientRequest i4 = new InsertClientRequest();
+        i4.setName("i4");
+        i4.setCompanyId(company.getId());
+        i4.setEmail("i4@email.com");
+        i4.setPhone("444456788");
+        InsertClientRequest i5 = new InsertClientRequest();
+        i5.setName("i5");
+        i5.setCompanyId(company.getId());
+        i5.setPhone("555556788");
+        InsertClientRequest i6 = new InsertClientRequest();
+        i6.setName("i6");
+        i6.setCompanyId(company.getId());
+        i6.setEmail("i6@email.com");
+        i6.setPhone("666666788");
+
+        List<InsertClientRequest> lstPartialFail = new ArrayList<>();
+        lstPartialFail.add(i4);
+        lstPartialFail.add(i5);
+        lstPartialFail.add(i6);
+
+        MvcResult mvcResult = mockMvc.perform(post("/client/all").contentType(MediaType.APPLICATION_JSON).content(objectMapper.writeValueAsString(lstPartialFail)))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andReturn();
+
+        List<Client> lst = parseJsonToClientList(mvcResult.getResponse().getContentAsString());
+
+        Assert.assertEquals(2, lst.size());
+        Assert.assertEquals(lst.get(0).getCompanyId(), i4.getCompanyId().intValue());
+        Assert.assertEquals(lst.get(0).getName(), i4.getName());
+        Assert.assertEquals(lst.get(0).getEmail(), i4.getEmail());
+        Assert.assertEquals(lst.get(0).getPhone(), i4.getPhone());
+        Assert.assertNotNull(lst.get(0).getCreatedAt());
+        Assert.assertNotNull(lst.get(0).getCreatedBy());
+        Assert.assertEquals(lst.get(1).getCompanyId(), i6.getCompanyId().intValue());
+        Assert.assertEquals(lst.get(1).getName(), i6.getName());
+        Assert.assertEquals(lst.get(1).getEmail(), i6.getEmail());
+        Assert.assertEquals(lst.get(1).getPhone(), i6.getPhone());
+        Assert.assertNotNull(lst.get(1).getCreatedAt());
+        Assert.assertNotNull(lst.get(1).getCreatedBy());
     }
 
     @Test
@@ -264,6 +330,19 @@ public class ClientControllerTest {
         mockMvc.perform(delete("/client").contentType(MediaType.APPLICATION_JSON).content(objectMapper.writeValueAsString(deleteClientRequest)))
                 .andDo(print())
                 .andExpect(status().isBadRequest());
+    }
+
+    private Company insertACompany() throws Exception {
+        InsertCompanyRequest insertCompanyRequest = new InsertCompanyRequest();
+        insertCompanyRequest.setName("NewCompany");
+        insertCompanyRequest.setAddress("NewStreet");
+
+        MvcResult mvcResult = mockMvc.perform(post("/company").contentType(MediaType.APPLICATION_JSON).content(objectMapper.writeValueAsString(insertCompanyRequest)))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andReturn();
+
+        return parseJsonToCompany(mvcResult.getResponse().getContentAsString());
     }
 
     private Client insertTest() throws Exception {
@@ -370,9 +449,34 @@ public class ClientControllerTest {
         return client;
     }
 
-    private InsertClientRequest createInsertClientRequest() {
+    private Company parseJsonToCompany(String jsonString) throws JsonProcessingException, ParseException {
+        JsonNode node = objectMapper.readTree(jsonString);
+
+        Company company = new Company();
+        company.setId(node.get("id").asInt());
+        company.setName(node.get("name").asText());
+        company.setAddress(node.get("address").asText());
+        if(node.hasNonNull("createdAt")) {
+            company.setCreatedAt(new Timestamp(sdf.parse(node.get("createdAt").asText()).getTime()));
+        }
+        if(node.hasNonNull("createdBy")) {
+            company.setCreatedBy(node.get("createdBy").asText());
+        }
+        if(node.hasNonNull("updatedAt")) {
+            company.setUpdatedAt(new Timestamp(sdf.parse(node.get("updatedAt").asText()).getTime()));
+        }
+        if(node.hasNonNull("updatedBy")) {
+            company.setUpdatedBy(node.get("updatedBy").asText());
+        }
+
+        return company;
+    }
+
+    private InsertClientRequest createInsertClientRequest() throws Exception {
+        Company company = insertACompany();
+
         InsertClientRequest insertClientRequest = new InsertClientRequest();
-        insertClientRequest.setCompanyId(66);
+        insertClientRequest.setCompanyId(company.getId());
         insertClientRequest.setEmail("eamil@abc.com");
         insertClientRequest.setName("TestClient");
         insertClientRequest.setPhone("123456789");

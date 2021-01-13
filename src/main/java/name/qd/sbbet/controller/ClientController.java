@@ -12,6 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @RestController
@@ -46,9 +47,8 @@ public class ClientController {
     @PostMapping("")
     @ApiOperation(value="Insert a new client")
     @ApiResponses(value = {@ApiResponse(code = 400, message = "companyId or name or email or phone not present")})
-    public ResponseEntity<Client> insertClient(@RequestBody InsertClientRequest insertClientRequest) {
-        if(insertClientRequest.getName() == null || insertClientRequest.getCompanyId() == null
-        || insertClientRequest.getEmail() == null || insertClientRequest.getPhone() == null) {
+    public ResponseEntity<Client> insertClient(@RequestBody InsertClientRequest insertClientRequest) throws NotFoundException {
+        if(!isFieldComplete(insertClientRequest)) {
             return ResponseEntity.badRequest().build();
         }
         Client client = clientService.insert(insertClientRequest.toClient());
@@ -61,11 +61,27 @@ public class ClientController {
     @PostMapping("/all")
     @ApiOperation(value="Insert multiple clients")
     @ApiResponses(value = {@ApiResponse(code = 400, message = "")})
-    public ResponseEntity<List<Client>> insertClients(@RequestBody List<InsertClientRequest> lst) {
+    public ResponseEntity<List<Client>> insertClients(@RequestBody List<InsertClientRequest> lstInsertClientRequest) {
         // check field exist
-        // prepare a new list
-//        clientService.insert(lst)
+        List<Client> lst = new ArrayList<>();
+        for(InsertClientRequest insertClientRequest : lstInsertClientRequest) {
+            if(isFieldComplete(insertClientRequest)) {
+                lst.add(insertClientRequest.toClient());
+            }
+        }
+        if(lst.size() > 0) {
+            List<Client> lstInserted = clientService.insert(lst);
+            return ResponseEntity.ok(lstInserted);
+        }
         return ResponseEntity.badRequest().build();
+    }
+
+    private boolean isFieldComplete(InsertClientRequest insertClientRequest) {
+        if(insertClientRequest.getName() == null || insertClientRequest.getCompanyId() == null
+                || insertClientRequest.getEmail() == null || insertClientRequest.getPhone() == null) {
+            return false;
+        }
+        return true;
     }
 
     @PutMapping("")

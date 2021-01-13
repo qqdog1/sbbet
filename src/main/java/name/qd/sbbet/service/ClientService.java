@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+import name.qd.sbbet.repository.CompanyRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,10 +23,12 @@ public class ClientService {
 	private Logger logger = LoggerFactory.getLogger(CompanyService.class);
 
 	private ClientRepository clientRepository;
+	private CompanyRepository companyRepository;
 
 	@Autowired
-	public ClientService(ClientRepository clientRepository) {
+	public ClientService(ClientRepository clientRepository, CompanyRepository companyRepository) {
 		this.clientRepository = clientRepository;
+		this.companyRepository = companyRepository;
 	}
 	
 	public List<Client> findAll() {
@@ -43,20 +46,31 @@ public class ClientService {
 	}
 	
 	public List<Client> insert(List<Client> clients) {
-		// check company id exist
-		// insert time and at
-		Iterable<Client> iterable = clientRepository.saveAll(clients);
 		List<Client> lst = new ArrayList<>();
-	    iterable.forEach(lst::add);
-		return lst;
+		for(Client client : clients) {
+			if(companyRepository.existsById(client.getCompanyId())) {
+				client.setCreatedAt(new Timestamp(System.currentTimeMillis()));
+				client.setCreatedBy(getLoginUserName());
+				lst.add(client);
+			}
+		}
+
+		Iterable<Client> iterable = clientRepository.saveAll(lst);
+		List<Client> lstInserted = new ArrayList<>();
+	    iterable.forEach(lstInserted::add);
+		return lstInserted;
 	}
 	
-	public Client insert(Client client) {
+	public Client insert(Client client) throws NotFoundException {
 		// check company id
+		if(!companyRepository.existsById(client.getCompanyId())) {
+			logger.error("Insert client failed, company id not exist, companyId:{}", client.getCompanyId());
+			throw new NotFoundException();
+		}
 		
 		String username = getLoginUserName();
 		client.setCreatedBy(username);
-		client.setCreatedAt(Timestamp.from(Instant.now()));
+		client.setCreatedAt(new Timestamp(System.currentTimeMillis()));
 		
 		try {
 			return clientRepository.save(client);
@@ -99,7 +113,7 @@ public class ClientService {
 		dbClient.setPhone(updateClient.getPhone());
 		String username = getLoginUserName();
 		dbClient.setUpdatedBy(username);
-		dbClient.setUpdatedAt(Timestamp.from(Instant.now()));
+		dbClient.setUpdatedAt(new Timestamp(System.currentTimeMillis()));
 		return dbClient;
 	}
 }
