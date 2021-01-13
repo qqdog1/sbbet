@@ -2,10 +2,8 @@ package name.qd.sbbet.request;
 
 import name.qd.sbbet.dto.Company;
 
-public class UpdateCompanyRequest {
+public class UpdateCompanyRequest extends InsertCompanyRequest {
     private int id;
-    private String name;
-    private String address;
 
     public int getId() {
         return id;
@@ -15,27 +13,10 @@ public class UpdateCompanyRequest {
         this.id = id;
     }
 
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public String getAddress() {
-        return address;
-    }
-
-    public void setAddress(String address) {
-        this.address = address;
-    }
-
+    @Override
     public Company toCompany() {
-        Company company = new Company();
+        Company company = super.toCompany();
         company.setId(id);
-        company.setName(name);
-        company.setAddress(address);
         return company;
     }
 }

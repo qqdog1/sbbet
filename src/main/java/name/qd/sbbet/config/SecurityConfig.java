@@ -1,7 +1,9 @@
 package name.qd.sbbet.config;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Bean;
 import org.springframework.http.HttpMethod;
+import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -12,8 +14,12 @@ import name.qd.sbbet.service.SpringUserService;
 
 @EnableWebSecurity
 public class SecurityConfig extends WebSecurityConfigurerAdapter {
-	@Autowired
 	private SpringUserService springUserService;
+
+	@Autowired
+	public SecurityConfig(SpringUserService springUserService) {
+		this.springUserService = springUserService;
+	}
 
 	@Override
 	protected void configure(HttpSecurity http) throws Exception {
@@ -32,7 +38,8 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 		.anyRequest().permitAll()
 		.and()
 		.csrf().disable()
-		.formLogin();
+//		.formLogin().loginPage("/login")
+		;
 	}
 
 	@Override
@@ -41,5 +48,11 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 		.userDetailsService(springUserService)
 //		.passwordEncoder(new BCryptPasswordEncoder());
 		.passwordEncoder(NoOpPasswordEncoder.getInstance());
+	}
+
+	@Bean
+	@Override
+	public AuthenticationManager authenticationManagerBean() throws Exception {
+		return super.authenticationManagerBean();
 	}
 }

@@ -58,8 +58,11 @@ public class Client {
 	public void setCreatedBy(String createdBy) {
 		this.createdBy = createdBy;
 	}
-	public Timestamp getCreatedAt() {
-		return createdAt;
+	public String getCreatedAt() {
+		if(createdAt != null) {
+			return createdAt.toString();
+		}
+		return null;
 	}
 	public void setCreatedAt(Timestamp createdAt) {
 		this.createdAt = createdAt;
@@ -70,8 +73,11 @@ public class Client {
 	public void setUpdatedBy(String updatedBy) {
 		this.updatedBy = updatedBy;
 	}
-	public Timestamp getUpdatedAt() {
-		return updatedAt;
+	public String getUpdatedAt() {
+		if(updatedAt != null) {
+			return updatedAt.toString();
+		}
+		return null;
 	}
 	public void setUpdatedAt(Timestamp updatedAt) {
 		this.updatedAt = updatedAt;

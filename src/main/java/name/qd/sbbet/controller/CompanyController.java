@@ -2,6 +2,10 @@ package name.qd.sbbet.controller;
 
 import java.util.List;
 
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiResponse;
+import io.swagger.annotations.ApiResponses;
 import name.qd.sbbet.request.UpdateCompanyRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.crossstore.ChangeSetPersister.NotFoundException;
@@ -18,25 +22,31 @@ import org.springframework.web.bind.annotation.RestController;
 import name.qd.sbbet.dto.Company;
 import name.qd.sbbet.request.DeleteCompanyRequest;
 import name.qd.sbbet.request.InsertCompanyRequest;
-import name.qd.sbbet.response.Response;
 import name.qd.sbbet.service.CompanyService;
 
 @RestController
 @RequestMapping("/company")
+@Api(tags = "company")
 public class CompanyController {
-	@Autowired
 	private CompanyService companyService;
 
+	@Autowired
+	public CompanyController(CompanyService companyService) {
+		this.companyService = companyService;
+	}
+
 	@GetMapping("/all")
+	@ApiOperation(value="Get all company's information!")
 	public ResponseEntity<List<Company>> getAll() {
 		return ResponseEntity.ok(companyService.findAll());
 	}
 	
 	@GetMapping("")
-	public ResponseEntity<?> getCompanyById(@RequestParam Integer id) throws NotFoundException {
+	@ApiOperation(value="Get company by id")
+	@ApiResponses(value = {@ApiResponse(code = 400, message = "id = null or id not found")})
+	public ResponseEntity<Company> getCompanyById(@RequestParam Integer id) throws NotFoundException {
 		if(id == null) {
-			Response res = new Response("id cannot be null");
-			return ResponseEntity.badRequest().body(res);
+			return ResponseEntity.badRequest().build();
 		}
 		
 		Company company = companyService.findById(id);
@@ -44,7 +54,9 @@ public class CompanyController {
 	}
 	
 	@PostMapping("")
-	public ResponseEntity<?> insertCompany(@RequestBody InsertCompanyRequest insertCompanyRequest) {
+	@ApiOperation(value="Insert a new company")
+	@ApiResponses(value = {@ApiResponse(code = 400, message = "name or address not present")})
+	public ResponseEntity<Company> insertCompany(@RequestBody InsertCompanyRequest insertCompanyRequest) {
 		if(insertCompanyRequest.getName() == null || insertCompanyRequest.getAddress() == null) {
 			return ResponseEntity.badRequest().build();
 		}
@@ -56,7 +68,9 @@ public class CompanyController {
 	}
 	
 	@PutMapping("")
-	public ResponseEntity<?> updateCompany(@RequestBody UpdateCompanyRequest updateCompanyRequest) throws NotFoundException {
+	@ApiOperation(value="Update a exist company")
+	@ApiResponses(value = {@ApiResponse(code = 400, message = "id not found or name or address not present")})
+	public ResponseEntity<Company> updateCompany(@RequestBody UpdateCompanyRequest updateCompanyRequest) throws NotFoundException {
 		Company updatedCompany = companyService.updateById(updateCompanyRequest.toCompany());
 		if(updatedCompany != null) {
 			return ResponseEntity.ok(updatedCompany);
@@ -65,7 +79,9 @@ public class CompanyController {
 	}
 	
 	@DeleteMapping("")
-	public ResponseEntity<?> deleteCompany(@RequestBody DeleteCompanyRequest deleteCompanyRequest) {
+	@ApiOperation(value="Delete a exist company by id")
+	@ApiResponses(value = {@ApiResponse(code = 400, message = "id not found")})
+	public ResponseEntity<Void> deleteCompany(@RequestBody DeleteCompanyRequest deleteCompanyRequest) {
 		if(companyService.deleteById(deleteCompanyRequest.getId())) {
 			return ResponseEntity.ok().build();
 		}

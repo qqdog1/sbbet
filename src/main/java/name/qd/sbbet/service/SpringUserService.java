@@ -17,14 +17,17 @@ import name.qd.sbbet.dto.AppUser;
 
 @Service
 public class SpringUserService implements UserDetailsService {
+    private AppUserService appUserService;
 
     @Autowired
-    private AppUserService userService;
+    public SpringUserService(AppUserService appUserService) {
+        this.appUserService = appUserService;
+    }
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         try {
-            AppUser appUser = userService.getUserByName(username);
+            AppUser appUser = appUserService.getUserByName(username);
             List<GrantedAuthority> lst = new ArrayList<>();
             for(String authority : appUser.getAuthorities()) {
             	SimpleGrantedAuthority simpleGrantedAuthority = new SimpleGrantedAuthority(authority);
@@ -35,5 +38,4 @@ public class SpringUserService implements UserDetailsService {
             throw new UsernameNotFoundException("Username is wrong.");
         }
     }
-
 }

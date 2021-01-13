@@ -1,21 +1,16 @@
 package name.qd.sbbet.controller;
 
-import static org.hamcrest.Matchers.containsString;
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.test.web.servlet.setup.SharedHttpSessionConfigurer.sharedHttpSession;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import name.qd.sbbet.dto.Company;
-import name.qd.sbbet.request.DeleteCompanyRequest;
-import name.qd.sbbet.request.InsertCompanyRequest;
-import name.qd.sbbet.request.UpdateCompanyRequest;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -31,6 +26,17 @@ import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+import name.qd.sbbet.dto.Company;
+import name.qd.sbbet.request.DeleteCompanyRequest;
+import name.qd.sbbet.request.InsertCompanyRequest;
+import name.qd.sbbet.request.UpdateCompanyRequest;
+
+import java.sql.Timestamp;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.MOCK)
 @AutoConfigureMockMvc
@@ -41,6 +47,7 @@ public class CompanyControllerTest {
 	private WebApplicationContext webApplicationContext;
 
 	private ObjectMapper objectMapper;
+	private SimpleDateFormat sdf;
 
 	// controller 補檢查後 這邊要補錯誤訊息比對
 	// 正常view V
@@ -50,9 +57,8 @@ public class CompanyControllerTest {
 	// 正常update V
 	// update不給id V
 	// update給id不給其他 V
-	// update還給create資訊 V
 	// 正常delete V
-	// delete不存在ID
+	// delete不存在ID V
 	
 	@Before
     public void setup() {
@@ -63,11 +69,12 @@ public class CompanyControllerTest {
           .build();
 
 		objectMapper = new ObjectMapper();
+		sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
     }
 
 	@Test
 	@WithMockUser(username = "dummyUser", authorities = {"view"})
-	public void findCompanyTest() throws Exception {
+	public void findAllCompanyTest() throws Exception {
 		mockMvc.perform(get("/company/all"))
 				.andDo(print())
 				.andExpect(status().isOk())
@@ -167,7 +174,7 @@ public class CompanyControllerTest {
 				.andExpect(status().isOk())
 				.andReturn();
 
-		Company insertedCompany = objectMapper.readValue(mvcResult.getResponse().getContentAsString(), Company.class);
+		Company insertedCompany = parseJsonToCompany(mvcResult.getResponse().getContentAsString());
 
 		Assert.assertEquals(insertCompanyRequest.getName(), insertedCompany.getName());
 		Assert.assertEquals(insertCompanyRequest.getAddress(), insertedCompany.getAddress());
@@ -184,8 +191,7 @@ public class CompanyControllerTest {
 				.andExpect(status().isOk())
 				.andReturn();
 
-		String findResult = mvcResult.getResponse().getContentAsString();
-		Company findCompany = objectMapper.readValue(findResult, Company.class);
+		Company findCompany = parseJsonToCompany(mvcResult.getResponse().getContentAsString());
 
 		Assert.assertEquals(company.getName(), findCompany.getName());
 		Assert.assertEquals(company.getAddress(), findCompany.getAddress());
@@ -199,7 +205,7 @@ public class CompanyControllerTest {
 				.andExpect(status().isOk())
 				.andReturn();
 
-		Company updatedCompany = objectMapper.readValue(mvcResult.getResponse().getContentAsString(), Company.class);
+		Company updatedCompany = parseJsonToCompany(mvcResult.getResponse().getContentAsString());
 
 		Assert.assertEquals(company.getName(), updatedCompany.getName());
 		Assert.assertEquals(company.getAddress(), updatedCompany.getAddress());
@@ -220,14 +226,33 @@ public class CompanyControllerTest {
 				.andExpect(status().isOk());
 	}
 
+	private Company parseJsonToCompany(String jsonString) throws JsonProcessingException, ParseException {
+		JsonNode node = objectMapper.readTree(jsonString);
+
+		Company company = new Company();
+		company.setId(node.get("id").asInt());
+		company.setName(node.get("name").asText());
+		company.setAddress(node.get("address").asText());
+		if(node.hasNonNull("createdAt")) {
+			company.setCreatedAt(new Timestamp(sdf.parse(node.get("createdAt").asText()).getTime()));
+		}
+		if(node.hasNonNull("createdBy")) {
+			company.setCreatedBy(node.get("createdBy").asText());
+		}
+		if(node.hasNonNull("updatedAt")) {
+			company.setUpdatedAt(new Timestamp(sdf.parse(node.get("updatedAt").asText()).getTime()));
+		}
+		if(node.hasNonNull("updatedBy")) {
+			company.setUpdatedBy(node.get("updatedBy").asText());
+		}
+
+		return company;
+	}
+
 	private InsertCompanyRequest createInsertCompanyRequest() {
-		String companyName = "TestCompany";
-		String companyAddress = "Test Street";
-
 		InsertCompanyRequest insertCompanyRequest = new InsertCompanyRequest();
-		insertCompanyRequest.setName(companyName);
-		insertCompanyRequest.setAddress(companyAddress);
-
+		insertCompanyRequest.setName("TestCompany");
+		insertCompanyRequest.setAddress("Test Street");
 		return insertCompanyRequest;
 	}
 }
