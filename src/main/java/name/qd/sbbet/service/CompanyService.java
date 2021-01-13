@@ -46,7 +46,7 @@ public class CompanyService {
 		String username = getLoginUserName();
 		company.setCreatedBy(username);
 		company.setCreatedAt(new Timestamp(System.currentTimeMillis()));
-		
+
 		try {
 			return companyRepository.save(company);
 		} catch(IllegalArgumentException e) {

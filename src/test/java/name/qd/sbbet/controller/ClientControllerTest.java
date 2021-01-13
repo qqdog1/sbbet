@@ -52,9 +52,9 @@ public class ClientControllerTest {
     // view 不給條件 V
     // 正常insert V
     // insert 缺欄位 V
-    // 正常insert 多筆
-    // insert多筆資料全部有問題
-    // insert多筆資料部分有問題
+    // 正常insert 多筆 V
+    // insert多筆資料全部有問題 V
+    // insert多筆資料部分有問題 V
     // 正常update V
     // update不給id V
     // update給id不給其他 V
@@ -315,6 +315,18 @@ public class ClientControllerTest {
         updateClient5.setName(insertedClient.getName());
         updateClient5.setCompanyId(insertedClient.getCompanyId());
         updateClient5.setEmail(insertedClient.getEmail());
+
+        mockMvc.perform(put("/client").contentType(MediaType.APPLICATION_JSON).content(objectMapper.writeValueAsString(updateClient5)))
+                .andDo(print())
+                .andExpect(status().isBadRequest());
+
+        // update and give a no exist companyId
+        UpdateClientRequest updateClient6 = new UpdateClientRequest();
+        updateClient6.setId(insertedClient.getId());
+        updateClient6.setName(insertedClient.getName());
+        updateClient6.setCompanyId(0);
+        updateClient6.setEmail(insertedClient.getEmail());
+        updateClient6.setPhone(insertedClient.getPhone());
 
         mockMvc.perform(put("/client").contentType(MediaType.APPLICATION_JSON).content(objectMapper.writeValueAsString(updateClient5)))
                 .andDo(print())
