@@ -84,7 +84,7 @@ public class CompanyControllerTest {
 	@Test
 	@WithMockUser(username = "dummyUser", authorities = {"create", "view", "modify", "delete"})
 	public void happyPathTest() throws Exception {
-		Company company = insertTest();
+		Company company = insertTest("happyPathTest");
 		findTest(company);
 
 		company.setName("NewCompany");
@@ -123,9 +123,9 @@ public class CompanyControllerTest {
 	}
 
 	@Test
-	@WithMockUser(username = "dummyUser", authorities = {"create", "modify"})
+	@WithMockUser(username = "dummyUser", authorities = {"create", "modify", "delete"})
 	public void updateWithDiffInfo() throws Exception {
-		Company insertedCompany = insertTest();
+		Company insertedCompany = insertTest("updateWD");
 		// update without id
 		UpdateCompanyRequest updateCompany1 = new UpdateCompanyRequest();
 		updateCompany1.setName(insertedCompany.getName());
@@ -152,6 +152,13 @@ public class CompanyControllerTest {
 		mockMvc.perform(put("/company").contentType(MediaType.APPLICATION_JSON).content(objectMapper.writeValueAsString(updateCompany3)))
 				.andDo(print())
 				.andExpect(status().isBadRequest());
+
+		// delete
+		DeleteCompanyRequest deleteCompanyRequest = new DeleteCompanyRequest();
+		deleteCompanyRequest.setId(insertedCompany.getId());
+		mockMvc.perform(delete("/company").contentType(MediaType.APPLICATION_JSON).content(objectMapper.writeValueAsString(deleteCompanyRequest)))
+				.andDo(print())
+				.andExpect(status().isOk());
 	}
 
 	@Test
@@ -165,8 +172,8 @@ public class CompanyControllerTest {
 				.andExpect(status().isBadRequest());
 	}
 
-	private Company insertTest() throws Exception {
-		InsertCompanyRequest insertCompanyRequest = createInsertCompanyRequest();
+	private Company insertTest(String name) throws Exception {
+		InsertCompanyRequest insertCompanyRequest = createInsertCompanyRequest(name);
 
 		// insert
 		MvcResult mvcResult = mockMvc.perform(post("/company").contentType(MediaType.APPLICATION_JSON).content(objectMapper.writeValueAsString(insertCompanyRequest)))
@@ -249,9 +256,9 @@ public class CompanyControllerTest {
 		return company;
 	}
 
-	private InsertCompanyRequest createInsertCompanyRequest() {
+	private InsertCompanyRequest createInsertCompanyRequest(String name) {
 		InsertCompanyRequest insertCompanyRequest = new InsertCompanyRequest();
-		insertCompanyRequest.setName("TestCompany");
+		insertCompanyRequest.setName(name);
 		insertCompanyRequest.setAddress("Test Street");
 		return insertCompanyRequest;
 	}
