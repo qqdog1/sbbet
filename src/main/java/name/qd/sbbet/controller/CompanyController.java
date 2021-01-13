@@ -43,7 +43,8 @@ public class CompanyController {
 	
 	@GetMapping("")
 	@ApiOperation(value="Get company by id")
-	@ApiResponses(value = {@ApiResponse(code = 400, message = "id = null or id not found")})
+	@ApiResponses(value = {@ApiResponse(code = 400, message = "id = null or id not found"),
+			               @ApiResponse(code = 403, message = "permission denied")})
 	public ResponseEntity<Company> getCompanyById(@RequestParam Integer id) throws NotFoundException {
 		if(id == null) {
 			return ResponseEntity.badRequest().build();
@@ -55,7 +56,9 @@ public class CompanyController {
 	
 	@PostMapping("")
 	@ApiOperation(value="Insert a new company")
-	@ApiResponses(value = {@ApiResponse(code = 400, message = "name or address not present")})
+	@ApiResponses(value = {@ApiResponse(code = 200, message = "return inserted company"),
+			               @ApiResponse(code = 400, message = "name or address not present"),
+			               @ApiResponse(code = 403, message = "permission denied")})
 	public ResponseEntity<Company> insertCompany(@RequestBody InsertCompanyRequest insertCompanyRequest) {
 		if(insertCompanyRequest.getName() == null || insertCompanyRequest.getAddress() == null) {
 			return ResponseEntity.badRequest().build();
@@ -69,7 +72,9 @@ public class CompanyController {
 	
 	@PutMapping("")
 	@ApiOperation(value="Update a exist company")
-	@ApiResponses(value = {@ApiResponse(code = 400, message = "id not found or name or address not present")})
+	@ApiResponses(value = {@ApiResponse(code = 200, message = "return created company"),
+			               @ApiResponse(code = 400, message = "id not found or name or address not present"),
+			               @ApiResponse(code = 403, message = "permission denied")})
 	public ResponseEntity<Company> updateCompany(@RequestBody UpdateCompanyRequest updateCompanyRequest) throws NotFoundException {
 		Company updatedCompany = companyService.updateById(updateCompanyRequest.toCompany());
 		if(updatedCompany != null) {
@@ -80,7 +85,8 @@ public class CompanyController {
 	
 	@DeleteMapping("")
 	@ApiOperation(value="Delete a exist company by id")
-	@ApiResponses(value = {@ApiResponse(code = 400, message = "id not found")})
+	@ApiResponses(value = {@ApiResponse(code = 400, message = "id not found"),
+			               @ApiResponse(code = 403, message = "permission denied")})
 	public ResponseEntity<Void> deleteCompany(@RequestBody DeleteCompanyRequest deleteCompanyRequest) {
 		if(companyService.deleteById(deleteCompanyRequest.getId())) {
 			return ResponseEntity.ok().build();

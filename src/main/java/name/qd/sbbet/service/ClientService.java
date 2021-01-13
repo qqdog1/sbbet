@@ -62,7 +62,6 @@ public class ClientService {
 	}
 	
 	public Client insert(Client client) throws NotFoundException {
-		// check company id
 		if(!companyRepository.existsById(client.getCompanyId())) {
 			logger.error("Insert client failed, company id not exist, companyId:{}", client.getCompanyId());
 			throw new NotFoundException();
@@ -82,7 +81,9 @@ public class ClientService {
 	
 	public Client updateById(Client client) throws NotFoundException {
 		Client dbClient = findById(client.getId());
-		
+		if(!companyRepository.existsById(client.getCompanyId())) {
+			throw new NotFoundException();
+		}
 		try {
 			return clientRepository.save(transToUpdateClient(client, dbClient));
 		} catch(IllegalArgumentException e) {
